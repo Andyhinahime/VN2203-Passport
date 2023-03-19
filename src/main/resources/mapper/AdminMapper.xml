@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.tedu.jsdvn2203.csmall.passport.mapper.AdminMapper">
+    <!-- int insert(Admin admin);-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO
+            ams_admin(username, password, nickname, avatar, phone, email,
+                      description, enable, last_login_ip, login_count,
+                      gmt_last_login, gmt_create, gmt_modified)
+        VALUES
+            (#{username}, #{password}, #{nickname}, #{avatar}, #{phone}, #{email},
+                      #{description}, #{enable}, #{lastLoginIp}, #{loginCount},
+                      #{gmtLastLogin}, #{gmtCreate}, #{gmtModified})
+    </insert>
+
+    <!--int countByUsername(String username);-->
+    <select id="countByUsername" resultType="int">
+        SELECT
+            COUNT(*)
+        FROM
+           ams_admin
+        WHERE
+            username = #{username}
+    </select>
+
+    <!--AdminLoginVO getByUsername(String username);-->
+    <select id="getByUsername" resultMap="LoginResultMap">
+     SELECT
+        ams_admin.id,
+        ams_admin.username,
+        ams_admin.password,
+        ams_admin.is_enable,
+        ams_admin.login_count,
+        ams_permission.value
+    FROM
+        ams_admin
+        LEFT JOIN ams_admin_role ON ams_admin.id = ams_admin_role.admin_id
+        LEFT JOIN ams_role_permission ON ams_admin_role.role_id = ams_role_permission.role_id
+        LEFT JOIN ams_permission ON ams_role_permission.permission_id = ams_permission.id
+    WHERE
+        ams_admin.username = #{username};
+    </select>
+    <resultMap id="LoginResultMap" type="cn.tedu.jsdvn2203.csmall.passport.pojo.vo.AdminLoginVO">
+        <id column="id" property="id"></id>
+        <result column="username" property="username"></result>
+        <result column="password" property="password"></result>
+        <result column="is_enable" property="enable"></result>
+        <result column="login_count" property="loginCount"></result>
+        <!-- 集合 -->
+        <collection property="permissions" ofType="java.lang.String">
+            <constructor>
+                <arg column="value"></arg>
+            </constructor>
+        </collection>
+    </resultMap>
+
+    <!--List<AdminListItemVO> list();-->
+    <select id="list" resultMap="ListItemResultMap">
+        SELECT
+            <include refid="ListItemQueryFields">
+
+            </include>
+        FROM
+            ams_admin
+        ORDER BY
+            id
+    </select>
+    <resultMap id="ListItemResultMap" type="cn.tedu.jsdvn2203.csmall.passport.pojo.vo.AdminListItemVO">
+        <result column="last_login_ip" property="lastLoginIp"></result>
+        <result column="login_count" property="loginCount"></result>
+        <result column="gmt_last_login" property="gmtLastLogin"></result>
+    </resultMap>
+    <sql id="ListItemQueryFields">
+      id, username, password, nickname, avatar, phone, email,
+      description, enable, last_login_ip, login_count,
+      gmt_last_login
+    </sql>
+    <!--int updateGmtLastLoginById(Long id);-->
+    <update id="updateGmtLastLoginById">
+        UPDATE
+            ams_admin
+        SET
+            gmt_last_login = #{gmtLastLogin},
+            login_count = #{loginCount}
+        WHERE
+            id = #{id}
+    </update>
+
+
+
+
+
+
+
+
+
+
+</mapper>
